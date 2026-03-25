@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Network Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<style>
+:root{--bg:#F4F3F8;--surface:#fff;--s2:#EEEDF5;--p:#5C4EE5;--pl:#ECEAFD;--pd:#4538C7;--acc:#F5C842;--g:#2DD4A4;--r:#F24B4B;--o:#F0A050;--t:#1A1825;--t2:#6B6880;--bd:#E2E0EE;--sh:0 2px 12px rgba(92,78,229,.07);--shm:0 4px 24px rgba(92,78,229,.13);--rad:14px;--rsm:10px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t);min-height:100vh}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+.ob{display:flex;min-height:100vh}
+.ob-l{flex:1;background:var(--p);padding:60px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+.ob-l::before{content:'';position:absolute;width:420px;height:420px;border-radius:50%;background:rgba(255,255,255,.04);top:-120px;right:-120px}
+.ob-l::after{content:'';position:absolute;width:280px;height:280px;border-radius:50%;background:rgba(245,200,66,.1);bottom:-60px;left:-60px}
+.ob-ey{font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:20px}
+.ob-h1{font-size:44px;font-weight:700;color:#fff;line-height:1.1;margin-bottom:20px}
+.ob-h1 span{color:var(--acc)}
+.ob-sub{font-size:17px;color:rgba(255,255,255,.6);line-height:1.65;max-width:380px;margin-bottom:44px}
+.ob-stats{display:flex;gap:36px;position:relative;z-index:1}
+.ob-sv{font-size:30px;font-weight:700;color:#fff;font-family:'DM Mono',monospace}
+.ob-sl{font-size:12px;color:rgba(255,255,255,.45);margin-top:2px}
+.ob-r{width:540px;padding:60px 48px;overflow-y:auto;background:var(--bg);display:flex;flex-direction:column;justify-content:center}
+.slbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--p);margin-bottom:6px}
+.stitle{font-size:22px;font-weight:700;margin-bottom:22px}
+.uz{border:2px dashed var(--bd);border-radius:var(--rad);padding:32px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface);margin-bottom:12px}
+.uz:hover,.uz.drag{border-color:var(--p);background:var(--pl)}
+.ui{width:44px;height:44px;background:var(--pl);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:20px}
+.uz h3{font-size:14px;font-weight:600;margin-bottom:4px}
+.uz p{font-size:12px;color:var(--t2)}
+.uok{background:#F0FDF9;border:2px solid var(--g);border-radius:var(--rad);padding:16px 18px;display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.uok h3{font-size:14px;font-weight:600;color:#0D7A5F}
+.uok p{font-size:12px;color:#0D7A5F;opacity:.75}
+.uok-warn{background:#FEF9C3;border:2px solid var(--acc);border-radius:var(--rsm);padding:12px 16px;margin-bottom:20px;font-size:12px;color:#854D0E;line-height:1.5}
+.guide{background:var(--pl);border-radius:var(--rsm);padding:14px 18px;margin-bottom:20px;font-size:12px;color:var(--p);line-height:1.6}
+.mg{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.mc{background:var(--surface);border:2px solid var(--bd);border-radius:var(--rsm);padding:13px 16px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px}
+.mc:hover{border-color:var(--p);background:var(--pl)}.mc.sel{border-color:var(--p);background:var(--pl)}
+.mi{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--s2);flex-shrink:0}
+.mc.sel .mi{background:var(--p)}
+.mt{font-size:13px;font-weight:600}.md{font-size:11px;color:var(--t2);margin-top:1px}
+.form{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.fg label{display:block;font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.fg input,.fg select{width:100%;padding:9px 13px;border:2px solid var(--bd);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--surface);color:var(--t);outline:none;transition:.15s}
+.fg input:focus,.fg select:focus{border-color:var(--p)}
+.btn-p{background:var(--p);color:#fff;border:none;border-radius:var(--rsm);padding:13px 24px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:.15s;width:100%}
+.btn-p:hover{background:var(--pd);transform:translateY(-1px)}.btn-p:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.dash{display:flex;height:100vh;overflow:hidden}
+.sb{width:68px;background:var(--surface);border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:2px;flex-shrink:0}
+.sb-logo{width:38px;height:38px;background:var(--p);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;margin-bottom:20px}
+.si{width:42px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;color:var(--t2);transition:.15s}
+.si:hover{background:var(--s2);color:var(--p)}.si.act{background:var(--pl);color:var(--p)}
+.sb-bot{margin-top:auto}
+.mbadge{width:42px;padding:5px 0;border-radius:7px;background:var(--pl);color:var(--p);font-size:8px;font-weight:700;text-align:center;letter-spacing:.3px;text-transform:uppercase;cursor:pointer}
+.main{flex:1;overflow-y:auto;padding:28px 32px;min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.topbar h1{font-size:26px;font-weight:700}.topbar p{font-size:13px;color:var(--t2);margin-top:2px}
+.tbr{display:flex;align-items:center;gap:10px}
+.mpill{padding:5px 13px;border-radius:100px;font-size:11px;font-weight:600;background:var(--pl);color:var(--p)}
+.msg-pill{padding:5px 13px;border-radius:100px;font-size:11px;font-weight:600;background:#FEF9C3;color:#854D0E}
+.btn-sm{padding:7px 14px;border:2px solid var(--bd);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--t);transition:.15s}
+.btn-sm:hover{border-color:var(--p);color:var(--p)}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:28px}
+.sc{background:var(--surface);border-radius:var(--rad);padding:18px;box-shadow:var(--sh);transition:.15s}
+.sc:hover{transform:translateY(-2px);box-shadow:var(--shm)}.sc.hl{background:var(--p)}
+.sc-l{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--t2);margin-bottom:7px}
+.sc.hl .sc-l{color:rgba(255,255,255,.55)}
+.sc-v{font-size:26px;font-weight:700;font-family:'DM Mono',monospace}
+.sc.hl .sc-v{color:#fff}
+.sc-s{font-size:11px;color:var(--t2);margin-top:3px}.sc.hl .sc-s{color:rgba(255,255,255,.5)}
+.tabs{display:flex;gap:3px;margin-bottom:22px;padding:3px;background:var(--s2);border-radius:var(--rsm);width:fit-content}
+.tab{padding:7px 16px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;color:var(--t2);border:none;background:none;font-family:'DM Sans',sans-serif}
+.tab:hover{color:var(--t)}.tab.act{background:var(--surface);color:var(--p);font-weight:600;box-shadow:var(--sh)}
+.two-col{display:grid;grid-template-columns:1fr 290px;gap:22px}
+.inp{display:flex;flex-direction:column;gap:10px}
+.ic{background:var(--surface);border-radius:var(--rad);padding:16px;border-left:3px solid var(--p);box-shadow:var(--sh);animation:fu .3s ease}
+.ic.warn{border-left-color:var(--r)}.ic.pos{border-left-color:var(--g)}.ic.neu{border-left-color:var(--o)}.ic.gold{border-left-color:var(--acc)}
+.ic-ic{font-size:16px;margin-bottom:6px}.ic-h{font-size:12px;font-weight:600;line-height:1.4;margin-bottom:3px}.ic-b{font-size:11px;color:var(--t2);line-height:1.55}
+.ic-a{margin-top:8px;padding:5px 10px;background:var(--pl);color:var(--p);border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;width:100%;text-align:left}
+.ic-a:hover{background:var(--p);color:#fff}
+.health{background:var(--p);border-radius:var(--rad);padding:20px;color:#fff;box-shadow:var(--shm);margin-bottom:10px}
+.hl-l{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:6px}
+.hl-s{font-size:44px;font-weight:700;font-family:'DM Mono',monospace;line-height:1}
+.hl-sub{font-size:12px;color:rgba(255,255,255,.55);margin-top:3px;margin-bottom:4px}
+.hl-grade{font-size:11px;font-weight:600;color:var(--acc);margin-bottom:14px}
+.hbars{display:flex;flex-direction:column;gap:10px}
+.hbr{display:flex;flex-direction:column;gap:3px}
+.hbl{font-size:11px;color:rgba(255,255,255,.65);display:flex;justify-content:space-between}
+.hbt{height:5px;background:rgba(255,255,255,.15);border-radius:3px}
+.hbf{height:5px;background:var(--acc);border-radius:3px;transition:width .6s ease}
+.health-note{font-size:10px;color:rgba(255,255,255,.4);margin-top:14px;line-height:1.5;font-style:italic}
+.hl-list{display:flex;flex-direction:column;gap:9px}
+.hc{background:var(--surface);border-radius:var(--rad);padding:16px 18px;box-shadow:var(--sh);display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:start;transition:.15s;animation:fu .2s ease}
+.hc:hover{transform:translateY(-2px);box-shadow:var(--shm)}
+.hr{width:34px;height:34px;background:var(--pl);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--p);font-family:'DM Mono',monospace;flex-shrink:0}
+.hr.top{background:var(--p);color:#fff}
+.hn{font-size:14px;font-weight:600;margin-bottom:1px}.hm{font-size:12px;color:var(--t2);margin-bottom:7px}
+.hw{font-size:11px;background:var(--s2);padding:5px 9px;border-radius:5px;margin-bottom:5px;line-height:1.4}
+.ha{font-size:11px;color:var(--p);font-style:italic;line-height:1.5;border-left:2px solid var(--pl);padding-left:8px;margin-top:4px}
+.hbs{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.b{padding:2px 9px;border-radius:100px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:3px}
+.bh{background:var(--pl);color:var(--p)}.bw{background:#D1FAF0;color:#0D7A5F}.bc{background:#FEF0E0;color:#B85C00}.bf{background:var(--s2);color:var(--t2)}.be{background:#E8F5E9;color:#2E7D32}.bs{background:var(--s2);color:var(--t2)}.bi{background:#EDE9FE;color:#5B21B6}
+.warmth-note{background:#FEF9C3;border:1px solid var(--acc);border-radius:var(--rsm);padding:10px 14px;font-size:11px;color:#854D0E;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.tw{background:var(--surface);border-radius:var(--rad);overflow:hidden;box-shadow:var(--sh)}
+.th2{padding:14px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.th2 h3{font-size:14px;font-weight:600}
+.ts{overflow:auto;max-height:480px}
+table{width:100%;border-collapse:collapse}
+thead th{padding:10px 14px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--t2);background:var(--s2);cursor:pointer;user-select:none;white-space:nowrap}
+thead th:hover{color:var(--p)}
+tbody tr{border-bottom:1px solid var(--bd);transition:.1s}tbody tr:hover{background:var(--s2)}tbody tr:last-child{border-bottom:none}
+td{padding:10px 14px;font-size:12px}
+.tn{font-weight:600;white-space:nowrap}.tsb{font-size:11px;color:var(--t2);white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.fb{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.fs{padding:8px 13px;border:2px solid var(--bd);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:12px;background:var(--surface);color:var(--t);outline:none;flex:1;min-width:180px;transition:.15s}
+.fs:focus{border-color:var(--p)}
+.fsel{padding:7px 12px;border:2px solid var(--bd);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:12px;background:var(--surface);color:var(--t);outline:none;cursor:pointer;transition:.15s}
+.fsel:focus{border-color:var(--p)}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px}
+.cc{background:var(--surface);border-radius:var(--rad);padding:20px;box-shadow:var(--sh)}
+.ct{font-size:13px;font-weight:600;margin-bottom:16px}
+.bviz{display:flex;flex-direction:column;gap:6px}
+.bvr{display:flex;align-items:center;gap:8px;font-size:11px}
+.bvl{width:130px;text-align:right;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.bvt{flex:1;height:18px;background:var(--s2);border-radius:4px;overflow:hidden}
+.bvf{height:100%;border-radius:4px;transition:width .5s ease;display:flex;align-items:center;padding-left:6px;font-size:10px;font-weight:600;color:#fff;white-space:nowrap;min-width:4px}
+.bvv{color:var(--t2);font-family:'DM Mono',monospace;flex-shrink:0;min-width:28px;text-align:right}
+.cog{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.cocard{background:var(--surface);border-radius:var(--rad);padding:16px;box-shadow:var(--sh);transition:.15s;cursor:pointer;border-left:3px solid transparent}
+.cocard:hover{border-left-color:var(--p);transform:translateY(-2px);box-shadow:var(--shm)}
+.con{font-size:13px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.coc{font-size:22px;font-weight:700;font-family:'DM Mono',monospace;color:var(--p)}
+.com{font-size:11px;color:var(--t2);margin-top:2px}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.st{font-size:17px;font-weight:700}.sc2{font-size:12px;color:var(--t2);font-family:'DM Mono',monospace}
+.bex{padding:6px 13px;background:var(--pl);color:var(--p);border:none;border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:.15s}
+.bex:hover{background:var(--p);color:#fff}
+.lm{text-align:center;padding:18px}
+.blm{padding:9px 22px;border:2px solid var(--bd);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--t);transition:.15s}
+.blm:hover{border-color:var(--p);color:var(--p)}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.tmpl-grid{display:flex;flex-direction:column;gap:16px}
+.tmpl-section{background:var(--surface);border-radius:var(--rad);padding:20px;box-shadow:var(--sh)}
+.tmpl-section-title{font-size:13px;font-weight:700;color:var(--t);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.tmpl-section-sub{font-size:11px;color:var(--t2);margin-bottom:14px}
+.tmpl-cards{display:flex;flex-direction:column;gap:10px}
+.tmpl-card{background:var(--s2);border-radius:var(--rsm);padding:14px 16px;border-left:3px solid var(--bd);cursor:pointer;transition:.15s;position:relative}
+.tmpl-card:hover{border-left-color:var(--p);background:var(--pl)}
+.tmpl-card.expanded{border-left-color:var(--p)}
+.tmpl-label{font-size:11px;font-weight:700;color:var(--p);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.tmpl-when{font-size:11px;color:var(--t2);margin-bottom:8px;font-style:italic}
+.tmpl-msg{font-size:12px;line-height:1.7;color:var(--t);background:var(--surface);padding:12px 14px;border-radius:8px;border:1px solid var(--bd);white-space:pre-wrap}
+.tmpl-copy{margin-top:8px;padding:5px 12px;background:var(--pl);color:var(--p);border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.tmpl-copy:hover{background:var(--p);color:#fff}
+.tmpl-note{font-size:10px;color:var(--t2);margin-top:6px;font-style:italic}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.fade{animation:fu .3s ease}
+@media(max-width:1100px){.two-col{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.cg{grid-template-columns:1fr}}
+@media(max-width:720px){.ob{flex-direction:column}.ob-l{padding:40px 28px}.ob-r{width:100%;padding:36px 24px}.ob-h1{font-size:30px}.stats{grid-template-columns:repeat(2,1fr)}.main{padding:20px}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const {useState,useMemo}=React;
+
+function cleanStr(s){return(s||'').trim().replace(/^\uFEFF/,'');}
+
+/* ─ INFERENCE ─ */
+function infer_sen(p=''){
+  const s=p.toLowerCase();
+  if(/\bfounder\b|co-?founder/.test(s))return'Founder';
+  if(/\bceo\b|\bcoo\b|\bcto\b|\bcmo\b|\bcfo\b|\bchief\b|\bpresident\b/.test(s))return'C-Suite';
+  if(/recruiter|talent acq|talent partner|sourcer|talent scout/.test(s))return'Recruiter';
+  if(/\bhr\b|human resource|people ops|people partner/.test(s))return'Recruiter';
+  if(/\bsvp\b|\bevp\b|\bavp\b|\bvp\b|vice pres/.test(s))return'VP';
+  if(/\bdirector\b|\bhead of\b|\bhead,/.test(s))return'Director';
+  if(/\bsenior\b|\bsr\.?\b|\blead\b|\bprincipal\b|\bstaff\b/.test(s))return'Senior';
+  if(/\bmanager\b|\bmgr\b/.test(s))return'Manager';
+  return'IC / Peer';
+}
+function infer_fn(p=''){
+  const s=p.toLowerCase();
+  if(/recruit|talent|sourcer/.test(s))return'Recruitment & Talent';
+  if(/\bfounder\b|co-?founder|\bceo\b|\bowner\b/.test(s))return'Founder';
+  if(/investor|venture|\bvc\b/.test(s))return'Investor / VC';
+  if(/market|brand|growth|content|social|seo|digital|campaign|comms|\bpr\b/.test(s))return'Marketing';
+  if(/engineer|develop|software|data|\bai\b|\bml\b|product|backend|frontend|devops/.test(s))return'Tech & Engineering';
+  if(/sales|business dev|biz dev|account exec|revenue/.test(s))return'Sales';
+  if(/financ|account|audit|treasury/.test(s))return'Finance';
+  if(/design|creative|\bux\b|\bui\b|art direct|visual/.test(s))return'Creative & Design';
+  if(/\bhr\b|human res|people/.test(s))return'People & HR';
+  if(/operat|supply chain|logis|procure/.test(s))return'Operations';
+  if(/consult|advisor/.test(s))return'Consulting';
+  return'Other';
+}
+function infer_ind(c='',p=''){
+  const t=(c+' '+p).toLowerCase();
+  if(/beauty|cosmetic|skincare|makeup|fragrance|perfume|l.?oreal|sephora|byoma|estee|glossier|\bnyx\b|clinique|nivea|olay/.test(t))return'Beauty & Personal Care';
+  if(/\bwellness\b|\byoga\b|meditation|\bspa\b|pilates|\bfitness\b|\bgym\b|\bsport\b|\bnike\b|\badidas\b|lululemon/.test(t))return'Wellness & Fitness';
+  if(/\bluxury\b|\bfashion\b|jeweller|\bwatch\b|omega|longines|\brado\b|cartier|\bgucci\b|\blvmh\b|chalhoub|rivoli|swarovski|\bcoach\b|landmark group/.test(t))return'Luxury & Lifestyle';
+  if(/\brestaurant\b|\bfood\b|\bbeverage\b|\bcafe\b|\bhotel\b|hospitality|zomato|deliveroo|talabat|\bswiggy\b|catering/.test(t))return'F&B & Hospitality';
+  if(/health.?tech|medtech|pharma|medical|\bclinic\b|hospital|biotech|digital health/.test(t))return'Health Tech';
+  if(/\bretail\b|ecommerce|e-commerce|\bamazon\b|\bnoon\b|namshi|shopify|marketplace/.test(t))return'Retail & E-commerce';
+  if(/mckinsey|\bbain\b|\bbcg\b|kearney|deloitte|\bpwc\b|\bkpmg\b|\bey\b|accenture|\bagency\b|advertising/.test(t))return'Agency & Consulting';
+  if(/\bbank\b|financ|\binvest\b|\bfund\b|\bcapital\b|asset management|wealth|insurance|fintech|payment/.test(t))return'Finance & Banking';
+  if(/\btech\b|software|\bsaas\b|\bplatform\b|\bcloud\b|\bai\b|startup|zapier|microsoft|google|\bmeta\b|\bapple\b/.test(t))return'Tech & SaaS';
+  if(/\bmedia\b|publish|\bnews\b|\btv\b|\bfilm\b|entertainment|streaming|podcast|spotify/.test(t))return'Media & Content';
+  if(/educat|university|\bschool\b|training|learning|\bcourse\b/.test(t))return'Education';
+  if(/real.?estate|\bproperty\b|proptech|realty/.test(t))return'Real Estate';
+  return'Other';
+}
+function infer_connWarmth(d=''){
+  if(!d)return'Cold';
+  const mo={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  const p=d.trim().split(' ');
+  let dt=p.length===3?new Date(+p[2],(mo[p[1]]??0),+p[0]):new Date(d);
+  if(isNaN(dt))return'Cold';
+  const m=(Date.now()-dt)/(1000*60*60*24*30);
+  if(m<=3)return'Hot';if(m<=12)return'Warm';if(m<=24)return'Cooling';return'Cold';
+}
+
+/* ─ MESSAGES: URL-based matching ─ */
+function parseMessages(txt){
+  const clean=txt.replace(/^\uFEFF/,'');
+  const r=Papa.parse(clean,{header:true,skipEmptyLines:true,transformHeader:h=>h.trim().toUpperCase()});
+  if(!r.data||r.data.length===0)return{urlMap:{},myUrl:''};
+  // Auto-detect user's own URL = most frequent sender
+  const senderCounts={};
+  r.data.forEach(row=>{
+    const su=(row['SENDER PROFILE URL']||'').trim().replace(/\/$/,'').toLowerCase();
+    if(su)senderCounts[su]=(senderCounts[su]||0)+1;
+  });
+  const myUrl=Object.entries(senderCounts).sort((a,b)=>b[1]-a[1])[0]?.[0]||'';
+  const urlMap={};
+  r.data.forEach(row=>{
+    const su=(row['SENDER PROFILE URL']||'').trim().replace(/\/$/,'').toLowerCase();
+    const ru=(row['RECIPIENT PROFILE URLS']||row['RECIPIENT PROFILE URL']||'').trim().replace(/\/$/,'').toLowerCase();
+    const dateStr=(row['DATE']||'').trim();
+    if(!dateStr)return;
+    const d=new Date(dateStr.replace(' UTC','Z').replace(' ','T'));
+    if(isNaN(d.getTime()))return;
+    const other=su===myUrl?ru:su;
+    if(!other||other===myUrl||other.length<10)return;
+    const key=other.replace(/\/$/,'');
+    if(!urlMap[key]||d.getTime()>urlMap[key].getTime())urlMap[key]=d;
+  });
+  console.log('Messages parsed. Contacts:',Object.keys(urlMap).length,'myUrl:',myUrl);
+  return{urlMap,myUrl};
+}
+function matchByUrl(connUrl,urlMap){
+  if(!connUrl||!urlMap||!Object.keys(urlMap).length)return null;
+  const key=connUrl.toLowerCase().replace(/\/$/,'');
+  return urlMap[key]||null;
+}
+function getMsgWarmth(lastMsgDate){
+  if(!lastMsgDate)return null;
+  const m=(Date.now()-lastMsgDate)/(1000*60*60*24*30);
+  if(m<=1)return'Active';if(m<=3)return'Hot';if(m<=12)return'Warm';if(m<=24)return'Cooling';return'Cold';
+}
+
+/* ─ PARSE CONNECTIONS ─ */
+function parseCSV(txt,urlMap={}){
+  const clean=txt.replace(/^\uFEFF/,'');
+  const lines=clean.split('\n');
+  const hi=lines.findIndex(l=>l.includes('First Name'));
+  if(hi===-1)return[];
+  const r=Papa.parse(lines.slice(hi).join('\n'),{header:true,skipEmptyLines:true,transformHeader:h=>h.trim()});
+  return r.data.map((row,i)=>{
+    const firstName=cleanStr(row['First Name']);
+    const lastName=cleanStr(row['Last Name']);
+    const name=`${firstName} ${lastName}`.trim();
+    const email=cleanStr(row['Email Address']||'');
+    const company=cleanStr(row['Company']);
+    const position=cleanStr(row['Position']);
+    const connectedOn=cleanStr(row['Connected On']);
+    const url=cleanStr(row['URL']);
+    const connectionWarmth=infer_connWarmth(connectedOn);
+    // Connection age in months
+    const cp=connectedOn.trim().split(' ');
+    const cmo={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+    const cdt=cp.length===3?new Date(+cp[2],(cmo[cp[1]]??0),+cp[0]):new Date(connectedOn);
+    const connMonthsAgo=isNaN(cdt.getTime())?999:(Date.now()-cdt.getTime())/(1000*60*60*24*30);
+    // Message data — URL-based match
+    const msgDate=matchByUrl(url,urlMap);
+    const lastMessageDate=msgDate?msgDate.getTime():null;
+    const messageWarmth=getMsgWarmth(lastMessageDate);
+    const effectiveWarmth=messageWarmth||connectionWarmth;
+    return{
+      id:i,firstName,name,email,company,position,connectedOn,url,
+      seniority:infer_sen(position),fn:infer_fn(position),
+      industry:infer_ind(company,position),
+      connectionWarmth,messageWarmth,warmth:effectiveWarmth,
+      lastMessageDate,connMonthsAgo,
+      hasEmail:!!(email&&email.length>3&&email.includes('@')),
+    };
+  }).filter(c=>c.name.trim().length>0);
+}
+
+/* ─ SCORING ─ */
+function msgScore(c){
+  if(!c.lastMessageDate)return 0;
+  const m=(Date.now()-c.lastMessageDate)/(1000*60*60*24*30);
+  if(m<=1)return 60;if(m<=3)return 45;if(m<=12)return 30;if(m<=24)return 15;return 5;
+}
+function connScore(c){
+  const m=c.connMonthsAgo||999;
+  if(m<=3)return 20;if(m<=12)return 12;if(m<=24)return 5;return 2;
+}
+function scoreC(c,mode,intent){
+  const base=c.lastMessageDate?msgScore(c):connScore(c);
+  let s=base;
+  if(mode==='job'){
+    const tgts=(intent.companies||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+    if(tgts.some(t=>c.company.toLowerCase().includes(t)))s+=60;
+    if(c.seniority==='Recruiter')s+=50;
+    if((intent.industry||'')&&c.industry.toLowerCase().includes((intent.industry||'').toLowerCase()))s+=30;
+    if(['Director','VP','C-Suite'].includes(c.seniority))s+=20;
+  }else if(mode==='pivot'){
+    const ti=(intent.industry||'').toLowerCase();
+    if(ti&&c.industry.toLowerCase().includes(ti))s+=60;
+    if(['Director','VP','C-Suite','Founder'].includes(c.seniority))s+=25;
+  }else if(mode==='clients'){
+    if(['Founder','C-Suite','VP','Director'].includes(c.seniority))s+=60;
+    const ti=(intent.industries||'').toLowerCase();
+    if(ti&&ti.split(',').some(x=>c.industry.toLowerCase().includes(x.trim())))s+=40;
+    if(c.hasEmail)s+=20;
+  }else if(mode==='city'){
+    const ct=(intent.city||'').toLowerCase();
+    if(ct&&(c.company.toLowerCase().includes(ct)||c.position.toLowerCase().includes(ct)))s+=50;
+  }else{
+    const ti=(intent.targetIndustries||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+    if(ti.some(x=>x&&c.industry.toLowerCase().includes(x)))s+=50;
+    if(['Director','VP','C-Suite','Founder'].includes(c.seniority))s+=30;
+  }
+  return s;
+}
+
+/* ─ WHY REASON ─ */
+function whyC(c,mode,intent){
+  if(mode==='job'){
+    const tgts=(intent.companies||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+    if(tgts.some(t=>t&&c.company.toLowerCase().includes(t)))return`✓ Works at ${c.company} — your target company`;
+    if(c.seniority==='Recruiter')return`🎯 Recruiter at ${c.company} — direct line to open roles`;
+    if(['Director','VP','C-Suite'].includes(c.seniority))return`👑 ${c.seniority} at ${c.company} — potential hiring manager`;
+    return`📍 In your target industry: ${c.industry}`;
+  }
+  if(mode==='pivot'){
+    const ti=(intent.industry||'').toLowerCase();
+    if(ti&&c.industry.toLowerCase().includes(ti))return`🌿 Already in ${c.industry} — industry insider`;
+    return`🚪 ${c.seniority} — can open doors for your pivot`;
+  }
+  if(mode==='clients'){
+    if(c.seniority==='Founder')return`🚀 Founder at ${c.company} — budget owner`;
+    if(['C-Suite','VP'].includes(c.seniority))return`💼 ${c.seniority} at ${c.company} — controls budgets`;
+    return`✓ Director at ${c.company} — buyer or champion`;
+  }
+  if(mode==='city')return`🏙 Based in ${intent.city||'your city'}`;
+  return`⚡ Adds strategic diversity to your network`;
+}
+
+/* ─ ANGLE — smart, context-driven, suppressed when no hook ─ */
+function angleC(c,mode,intent){
+  const n=c.firstName||c.name.split(' ')[0]||'there';
+  const mo=c.lastMessageDate?(Date.now()-c.lastMessageDate)/(1000*60*60*24*30):null;
+  const active=mo!==null&&mo<=1;
+  const recentMsg=mo!==null&&mo<=3;
+  const warmMsg=mo!==null&&mo<=12;
+  const everMsg=mo!==null;
+  const coldConn=c.connectionWarmth==='Cold';
+  const tgts=(intent.companies||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+  const atTargetCo=tgts.length>0&&tgts.some(t=>c.company.toLowerCase().includes(t));
+  const targetInd=(intent.industry||intent.industries||'').toLowerCase().split(',')[0].trim();
+  const inTargetInd=targetInd.length>0&&c.industry.toLowerCase().includes(targetInd)&&c.industry!=='Other';
+  const hasSpecificInd=c.industry!=='Other';
+
+  if(mode==='job'){
+    if(atTargetCo){
+      if(c.seniority==='Recruiter')
+        return active?`"Hey ${n}, great chatting — I'm actively exploring roles at ${c.company}. Any openings worth knowing about?"`
+          :recentMsg?`"Hi ${n}, following up from our last chat — I'm now actively looking at ${c.company}. Would love your advice."`
+          :everMsg?`"Hi ${n}, it's been a while — I'm exploring roles at ${c.company} and you came to mind immediately."`
+          :`"Hi ${n}, I noticed you're at ${c.company} — I've been following the team and would love to explore if there's a fit."`;
+      if(['Director','VP','C-Suite','Founder'].includes(c.seniority))
+        return recentMsg?`"Hi ${n}, would love to catch up — I'm seriously considering a move to ${c.company} and your perspective would mean a lot."`
+          :everMsg?`"Hi ${n}, it's been too long — I'm exploring ${c.company} and you're the first person I thought of."`
+          :`"Hi ${n}, I've admired the work at ${c.company} — I'm exploring a move there and would love 15 mins of your time."`;
+      return everMsg?`"Hi ${n}, it's been a while — I'm exploring roles at ${c.company} and would love to hear what it's actually like there."`:null;
+    }
+    if(c.seniority==='Recruiter'){
+      if(active)return`"Hey ${n}, great connecting — I'm actively exploring ${intent.role||'a new role'} and would love to know what you're working on."`;
+      if(warmMsg&&inTargetInd)return`"Hi ${n}, we spoke a while back — I'm now actively looking for ${intent.role||'a new role'} in ${c.industry} and thought of you."`;
+      if(recentMsg)return`"Hi ${n}, hope you're well — I'm exploring ${intent.role||'a new role'} and you came to mind."`;
+      if(inTargetInd&&!coldConn)return`"Hi ${n}, I noticed you recruit in ${c.industry} — I'm exploring ${intent.role||'new roles'} and would love to connect properly."`;
+      return null;
+    }
+    if(inTargetInd&&['Director','VP','C-Suite'].includes(c.seniority)){
+      if(recentMsg)return`"Hi ${n}, great to stay in touch — I'm exploring a move into ${c.industry} and your perspective would be invaluable."`;
+      if(warmMsg)return`"Hi ${n}, it's been a while — I'm looking at roles in ${c.industry} and your advice would really help."`;
+      return null;
+    }
+    if(active&&hasSpecificInd)return`"Hey ${n}, great chatting — I'm exploring ${intent.role||'new roles'} in ${c.industry} and would love your thoughts."`;
+    return null;
+  }
+
+  if(mode==='pivot'){
+    if(inTargetInd&&['Director','VP','C-Suite','Founder'].includes(c.seniority)){
+      if(recentMsg)return`"Hi ${n}, I'd love to get your perspective — I'm making a move into ${intent.industry||'your space'} and your path is one I really admire."`;
+      if(warmMsg)return`"Hi ${n}, it's been a while — I'm transitioning into ${intent.industry||'your world'} and would love to hear how you got there."`;
+      if(everMsg&&!coldConn)return`"Hi ${n}, I'd love to reconnect — I'm pivoting into ${intent.industry||'your space'} and your journey really resonates."`;
+      return null;
+    }
+    if(inTargetInd&&everMsg)return`"Hi ${n}, I'm making a move into ${intent.industry||'your space'} — would love to hear what it's actually like on the inside."`;
+    if(inTargetInd&&!coldConn)return`"Hi ${n}, I'd love to connect properly — I'm pivoting into ${intent.industry||'your space'} and you came to mind."`;
+    return null;
+  }
+
+  if(mode==='clients'){
+    if(['Founder','C-Suite'].includes(c.seniority)&&inTargetInd){
+      if(active)return`"Hey ${n}, great chatting — I've been thinking about ${c.company} and think there's something worth exploring together."`;
+      if(recentMsg)return`"Hi ${n}, following up from our last conversation — I work with ${c.industry} brands on ${intent.offering||'growth'} and think there's a real fit with ${c.company}."`;
+      if(warmMsg)return`"Hi ${n}, it's been a while — I've been building something for ${c.industry} brands and ${c.company} keeps coming to mind. Worth a quick call?"`;
+      if(!coldConn)return`"Hi ${n}, I help ${c.industry} brands with ${intent.offering||'growth strategy'} — what you're building at ${c.company} genuinely interests me. Open to a call?"`;
+      return null;
+    }
+    if(['Director','VP'].includes(c.seniority)&&inTargetInd&&recentMsg)
+      return`"Hi ${n}, following up on our last chat — I work with brands like ${c.company} on ${intent.offering||'marketing strategy'}. Would love to explore if there's a fit."`;
+    if(active&&['Founder','C-Suite','Director','VP'].includes(c.seniority))
+      return`"Hey ${n}, great connecting — I help ${hasSpecificInd?c.industry:'brands'} with ${intent.offering||'growth'}. Think there could be something at ${c.company}."`;
+    return null;
+  }
+
+  if(mode==='city'){
+    const city=intent.city||'your city';
+    if(active)return`"Hey ${n}, we should grab coffee — I'm in ${city} and it'd be great to actually meet."`;
+    if(recentMsg)return`"Hi ${n}, I keep meaning to suggest a coffee in ${city} — what does your week look like?"`;
+    if(warmMsg)return`"Hi ${n}, it's been a while — I'm in ${city} and would love to finally meet properly."`;
+    if(everMsg&&!coldConn)return`"Hi ${n}, I realised we've never actually met in person — I'm in ${city} and would love to change that."`;
+    return null;
+  }
+
+  if(mode==='audit'){
+    if(inTargetInd&&recentMsg)return`"Hi ${n}, great to stay in touch — I've been building more presence in ${targetInd} and your perspective would be really valuable."`;
+    if(inTargetInd&&['Director','VP','C-Suite','Founder'].includes(c.seniority)&&!coldConn)
+      return`"Hi ${n}, I'm building my presence in ${targetInd} and your path stands out — would love to connect properly."`;
+    return null;
+  }
+  return null;
+}
+
+/* ─ TIME DISPLAY HELPERS ─ */
+function msgAgo(ts){
+  if(!ts)return'';
+  const m=(Date.now()-ts)/(1000*60*60*24*30);
+  if(m<0.5)return'this week';if(m<=1)return'last month';
+  if(m<=3)return'~'+Math.round(m*4)+'wk ago';
+  if(m<=12)return Math.round(m)+'mo ago';
+  return Math.round(m/12)+'yr ago';
+}
+function connAgo(months){
+  if(!months||months===999)return'unknown';
+  if(months<1)return'this month';if(months<12)return Math.round(months)+'mo ago';
+  return Math.round(months/12)+'yr ago';
+}
+
+/* ─ BADGES ─ */
+function WBadge({w}){
+  const cfg={Active:{style:{background:'#5C4EE5',color:'#fff'},ic:'💬'},Hot:{cls:'bh',ic:'🔥'},Warm:{cls:'bw',ic:'✅'},Cooling:{cls:'bc',ic:'🌤'},Cold:{cls:'bf',ic:'❄️'}};
+  const c=cfg[w]||cfg.Cold;
+  return React.createElement('span',{className:`b ${c.cls||''}`,style:c.style||{}},c.ic,' ',w);
+}
+function BarViz({data,color}){
+  const mx=Math.max(...data.map(d=>d.v),1);
+  return React.createElement('div',{className:'bviz'},data.slice(0,8).map(d=>
+    React.createElement('div',{key:d.k,className:'bvr'},
+      React.createElement('div',{className:'bvl',title:d.k},d.k),
+      React.createElement('div',{className:'bvt'},React.createElement('div',{className:'bvf',style:{width:`${Math.max((d.v/mx)*100,2)}%`,background:color||'var(--p)'}},d.v>5?d.v:'')),
+      React.createElement('span',{className:'bvv'},d.v)
+    )
+  ));
+}
+function countBy(arr,key){const m={};arr.forEach(x=>{const v=x[key]||'Unknown';m[v]=(m[v]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({k,v}));}
+
+/* ─ HIT CARD ─ */
+function isLikelyHiring(c){
+  if(c.seniority!=='Recruiter')return false;
+  const p=c.position.toLowerCase();
+  if(/hiring|talent acquisition|ta|actively|sourcing/.test(p))return true;
+  return c.connMonthsAgo<=6;
+}
+function HitCard({c,rank,mode,intent}){
+  const w=whyC(c,mode,intent);
+  const hiring=isLikelyHiring(c);
+  return React.createElement('div',{className:'hc'},
+    React.createElement('div',{className:`hr ${rank<=3?'top':''}`},`#${rank}`),
+    React.createElement('div',null,
+      React.createElement('div',{className:'hn'},c.name),
+      React.createElement('div',{className:'hm'},`${c.position}${c.company?' · '+c.company:''}`),
+      React.createElement('div',{className:'hw'},w),
+      React.createElement('div',{className:'hbs'},
+        c.lastMessageDate
+          ?React.createElement('span',{className:'b',style:{background:'#5C4EE5',color:'#fff'}},'💬 ',msgAgo(c.lastMessageDate))
+          :React.createElement(WBadge,{w:c.connectionWarmth}),
+        c.lastMessageDate&&React.createElement('span',{className:'b bf'},'🔗 ',connAgo(c.connMonthsAgo)),
+        React.createElement('span',{className:'b bs'},c.seniority),
+        hiring&&React.createElement('span',{className:'b',style:{background:'#D1FAF0',color:'#0D7A5F'}},'🟢 Likely Hiring'),
+        c.hasEmail&&React.createElement('span',{className:'b be'},'✉ Email'),
+        React.createElement('span',{className:'b bi',style:{fontSize:9}},c.industry)
+      )
+    ),
+    c.url&&React.createElement('a',{href:c.url,target:'_blank',rel:'noopener',style:{color:'var(--p)',fontSize:16,textDecoration:'none',paddingTop:2}},'↗')
+  );
+}
+
+/* ─ HEALTH SCORE ─ */
+function calcHealth(conns,hasMessages){
+  const n=conns.length;if(!n)return{score:0,grade:'—',comps:[],tip:''};
+  const inds=new Set(conns.map(c=>c.industry)).size;
+  const sp=conns.filter(c=>['Founder','C-Suite','VP','Director'].includes(c.seniority)).length/n;
+  const rp=conns.filter(c=>['Hot','Warm','Active'].includes(c.warmth)).length/n;
+  const geo=new Set(conns.map(c=>{const t=c.company.toLowerCase();if(t.includes('dubai')||t.includes('uae'))return'UAE';if(t.includes('saudi')||t.includes('ksa'))return'KSA';if(t.includes('london')||t.includes(' uk'))return'UK';if(t.includes('india')||t.includes('mumbai')||t.includes('delhi'))return'India';if(t.includes('usa')||t.includes('york')||t.includes('francisco'))return'US';return null;})).size-1;
+  const indScore=Math.min((inds/10)*20,20);
+  const senScore=Math.min((sp/.30)*25,25);
+  const recScore=Math.min((rp/.50)*20,20);
+  const geoScore=Math.min((Math.max(geo,0)/5)*15,15);
+  const emailPct=conns.filter(c=>c.hasEmail).length/n;
+  const msgPct=hasMessages?conns.filter(c=>c.lastMessageDate).length/n:0;
+  const actScore=Math.min((emailPct/.10)*8,8)+Math.min((msgPct/.15)*12,12);
+  const total=Math.round(indScore+senScore+recScore+geoScore+actScore);
+  let grade,tip;
+  if(total>=80){grade='Exceptional';tip='Top 5% of networks. Focus on activation, not growth.';}
+  else if(total>=65){grade='Strong';tip='Solid foundation. Focus on warming cold connections.';}
+  else if(total>=50){grade='Developing';tip='Good start. Diversify industries and seniority levels.';}
+  else if(total>=35){grade='Early Stage';tip='Needs work. Prioritise senior contacts in target industries.';}
+  else{grade='Just Starting';tip='Focus on strategic additions, not volume.';}
+  return{score:total,grade,comps:[{l:'Industry Spread',v:Math.round(indScore),m:20},{l:'Seniority Mix',v:Math.round(senScore),m:25},{l:'Network Recency',v:Math.round(recScore),m:20},{l:'Geographic Reach',v:Math.round(geoScore),m:15},{l:'Activation',v:Math.round(actScore),m:20}],tip};
+}
+
+/* ─ INSIGHTS ─ */
+function genInsights(conns,mode,intent,hasMessages){
+  const total=conns.length;
+  const hot=conns.filter(c=>['Hot','Active'].includes(c.warmth)).length;
+  const warm=conns.filter(c=>c.warmth==='Warm').length;
+  const cold=conns.filter(c=>c.warmth==='Cold').length;
+  const wEmail=conns.filter(c=>c.hasEmail).length;
+  const recs=conns.filter(c=>c.seniority==='Recruiter');
+  const senior=conns.filter(c=>['Founder','C-Suite','VP','Director'].includes(c.seniority));
+  const msort=(a,b)=>{const w={Active:0,Hot:1,Warm:2,Cooling:3,Cold:4};return w[a.warmth]-w[b.warmth];};
+  const out=[];
+  if(!hasMessages)out.push({t:'gold',i:'📨',h:'Upload Messages.csv to unlock real engagement data.',b:'Right now warmth is based on connection date. Upload your Messages.csv to see who you\'ve actually spoken to — the hit list changes significantly.',a:null});
+  if(mode==='job'){
+    const tgts=(intent.companies||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+    const tm=tgts.length?conns.filter(c=>tgts.some(t=>c.company.toLowerCase().includes(t))):[];
+    const wr=recs.sort(msort).slice(0,3);
+    if(tm.length>0)out.push({t:'pos',i:'🏢',h:`${tm.length} connection${tm.length>1?'s':''} at your target compan${tm.length>1?'ies':'y'}.`,b:wr.length?`${wr[0].name} is a warm recruiter — message them before you apply. A warm intro beats any cover letter.`:`Reach out before cold applying — an internal reference increases interview rates by 4×.`,a:'View hit list'});
+    else if(tgts.length)out.push({t:'warn',i:'⚠️',h:'No direct connections at your target companies yet.',b:`You'll need cold outreach — but your ${recs.length} recruiters can help bridge the gap faster.`,a:null});
+    out.push({t:recs.length>5?'pos':'neu',i:'🎯',h:`${recs.length} recruiters in your network. ${wr?.length||0} connected recently.`,b:wr?.length?`${wr[0].name} at ${wr[0].company} is your highest-priority message this week.`:`Most recruiter connections are old. A re-engagement message costs nothing.`,a:'View hit list'});
+    out.push({t:cold>total*.5?'warn':'neu',i:'❄️',h:`${Math.round(cold/total*100)}% of your network was connected 2+ years ago.`,b:`${warm+hot} recently active contacts is your window. ${hasMessages?'Message data shows your truly active relationships.':'Upload Messages.csv to find who you actually still talk to.'}`,a:null});
+    out.push({t:wEmail>0?'gold':'warn',i:'✉️',h:`${wEmail} connections have shared their email.`,b:wEmail>0?`Email gets 3× higher response than LinkedIn DMs. Highest-conversion targets.`:`No emails available — LinkedIn only shares when connections explicitly allow it.`,a:null});
+  }else if(mode==='pivot'){
+    const ti=(intent.industry||'').toLowerCase();
+    const ins=ti?conns.filter(c=>c.industry.toLowerCase().includes(ti)):[];
+    const si=ins.filter(c=>['Director','VP','C-Suite','Founder'].includes(c.seniority));
+    const wi=ins.filter(c=>['Hot','Warm','Active'].includes(c.warmth));
+    out.push({t:ins.length>10?'pos':'warn',i:'🔄',h:`You already know ${ins.length} people in ${intent.industry||'your target industry'}.`,b:ins.length>0?`${si.length} are senior enough to open a door.`:`You're starting cold. Build credibility before pitching yourself.`,a:ins.length>0?'View insiders':null});
+    out.push({t:'gold',i:'🌉',h:'Bridge contacts are your unfair advantage.',b:`People who've made a similar move skip the skepticism and get straight to helping.`,a:null});
+    out.push({t:wi.length>0?'pos':'neu',i:'🔥',h:`${wi.length} of your ${ins.length} insiders are recently active.`,b:wi.length>0?`Start with ${wi[0]?.name} — recent connections convert 4× better.`:`Most insider connections are old. A personalised note works better than a generic re-engage.`,a:null});
+  }else if(mode==='clients'){
+    const ti=(intent.industries||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+    const pc=conns.filter(c=>['Founder','C-Suite','VP','Director'].includes(c.seniority)&&(ti.length===0||ti.some(x=>c.industry.toLowerCase().includes(x))));
+    const wc=pc.filter(c=>['Hot','Warm','Active'].includes(c.warmth));
+    const ec=pc.filter(c=>c.hasEmail);
+    out.push({t:'pos',i:'💼',h:`${pc.length} potential clients in your network right now.`,b:`${wc.length} are recently active. That's a pipeline most consultants would kill for.`,a:'View hit list'});
+    out.push({t:wc.length>0?'pos':'neu',i:'🔥',h:`${wc.length} warm leads. Strike while the iron is hot.`,b:wc.length>0?`${wc[0].name} at ${wc[0].company} — ${wc[0].seniority}, recently active. First message this week.`:`Connections are cooling. A value-add touchpoint rewarms before a pitch.`,a:null});
+    out.push({t:ec.length>0?'gold':'neu',i:'✉️',h:`${ec.length} potential clients have shared their email.`,b:`Email converts at 3× the rate of LinkedIn DMs. Start here.`,a:null});
+    out.push({t:'warn',i:'⏰',h:`Don't let warm leads go cold.`,b:`Anyone active 6–12 months ago is starting to forget you. A simple touchpoint this week keeps the door open.`,a:null});
+  }else if(mode==='city'){
+    const ct=(intent.city||'').toLowerCase();
+    const cc=ct?conns.filter(c=>c.company.toLowerCase().includes(ct)||c.position.toLowerCase().includes(ct)):[];
+    const wcc=cc.filter(c=>['Hot','Warm','Active'].includes(c.warmth));
+    out.push({t:cc.length>20?'pos':'neu',i:'🏙',h:`~${cc.length} connections with signals pointing to ${intent.city||'your city'}.`,b:`${wcc.length} are recently active. Enough to fill a month of coffee chats without a single cold message.`,a:null});
+    out.push({t:'gold',i:'☕',h:'One coffee chat a week for 8 weeks changes your city.',b:`8 real relationships beat 800 LinkedIn connections. People who meet you IRL remember, refer, and invite you into rooms.`,a:null});
+  }else{
+    const inds=[...new Set(conns.map(c=>c.industry))];
+    const gaps=inds.filter(i=>conns.filter(c=>c.industry===i).length<5);
+    const top2=countBy(conns,'industry').slice(0,2);
+    const tp=Math.round(top2.reduce((s,i)=>s+i.v,0)/total*100);
+    const icC=conns.filter(c=>c.seniority==='IC / Peer').length;
+    out.push({t:icC>total*.6?'warn':'pos',i:'📊',h:`${Math.round(senior.length/total*100)}% of your network is Director or above.`,b:icC>total*.6?`Skews junior. Strong for peer referrals, weak for doors and sponsorship.`:`Good seniority mix. Peer density AND decision-maker access — that's rare.`,a:null});
+    out.push({t:'warn',i:'🏭',h:`${gaps.length} industries with fewer than 5 connections.`,b:`Every gap is a blind spot. One bad market cycle and your options shrink dramatically.`,a:null});
+    out.push({t:tp>60?'warn':'neu',i:'⚖️',h:`${tp}% of your network concentrated in 2 industries.`,b:`${top2.map(i=>i.k).join(' and ')} dominate. Deliberate diversification protects your optionality.`,a:null});
+    out.push({t:cold>total*.5?'warn':'neu',i:'❄️',h:`${Math.round(cold/total*100)}% of connections are cold.`,b:`Networks have a half-life. Add ${Math.round(total*.03)} new strategic connections this month.`,a:null});
+    out.push({t:'gold',i:'🎯',h:`Your network is an asset. Treat it like one.`,b:`The strongest networks aren't the biggest — they're the most activated. 10 warm relationships open more doors than 5,000 passive ones.`,a:null});
+  }
+  return out.slice(0,6);
+}
+
+/* ─ MODES & INDUSTRIES ─ */
+const MODES=[{id:'job',icon:'🎯',title:'Find a Job',desc:'Surface warm contacts at companies you want to work at'},{id:'pivot',icon:'🔄',title:'Pivot My Career',desc:'Find people already living the life you want to move into'},{id:'clients',icon:'💼',title:'Win Clients',desc:'Identify decision-makers you could be working with right now'},{id:'city',icon:'🏙',title:'Build in a New City',desc:"Activate connections in your city you've never actually met"},{id:'audit',icon:'🌐',title:'Audit My Network',desc:'Find the gaps and blind spots in who you know'}];
+const INDS=['Beauty & Personal Care','Wellness & Fitness','Luxury & Lifestyle','F&B & Hospitality','Health Tech','Retail & E-commerce','Agency & Consulting','Finance & Banking','Tech & SaaS','Media & Content','Education','Real Estate','Other'];
+
+/* ─ ONBOARDING ─ */
+function Onboarding({onStart}){
+  const [conns,setConns]=useState(null);
+  const [rawConnText,setRawConnText]=useState('');
+  const [urlMap,setUrlMap]=useState({});
+  const [mode,setMode]=useState(null);
+  const [intent,setIntent]=useState({});
+  const [step,setStep]=useState(1);
+  const [drag,setDrag]=useState(false);
+  const [msgDrag,setMsgDrag]=useState(false);
+  const [hasMessages,setHasMessages]=useState(false);
+  const [msgCount,setMsgCount]=useState(0);
+
+  function readConnections(f){
+    const r=new FileReader();
+    r.onload=e=>{setRawConnText(e.target.result);const p=parseCSV(e.target.result,urlMap);setConns(p);};
+    r.readAsText(f,'UTF-8');
+  }
+  function readMessages(f){
+    const r=new FileReader();
+    r.onload=e=>{
+      const {urlMap:um}=parseMessages(e.target.result);
+      setUrlMap(um);setHasMessages(true);
+      if(rawConnText){const p=parseCSV(rawConnText,um);setConns(p);setMsgCount(p.filter(c=>c.lastMessageDate).length);}
+    };
+    r.readAsText(f,'UTF-8');
+  }
+
+  const I=(k,ph,val,cb)=>React.createElement('div',{className:'fg'},React.createElement('label',null,k),React.createElement('input',{placeholder:ph,value:val||'',onChange:e=>cb(e.target.value)}));
+  const S=(k,val,cb,opts)=>React.createElement('div',{className:'fg'},React.createElement('label',null,k),React.createElement('select',{value:val||'',onChange:e=>cb(e.target.value)},React.createElement('option',{value:''},'Select'),opts.map(o=>React.createElement('option',{key:o,value:o},o))));
+
+  return React.createElement('div',{className:'ob'},
+    React.createElement('div',{className:'ob-l'},
+      React.createElement('div',{className:'ob-ey'},'Network Intelligence'),
+      React.createElement('h1',{className:'ob-h1'},'Your network is your ',React.createElement('span',null,'net worth.')),
+      React.createElement('p',{className:'ob-sub'},'Upload your LinkedIn connections and find out exactly who to talk to — for your job hunt, career pivot, client pipeline, or new city.'),
+      conns&&React.createElement('div',{className:'ob-stats'},
+        React.createElement('div',null,React.createElement('div',{className:'ob-sv'},conns.length.toLocaleString()),React.createElement('div',{className:'ob-sl'},'Connections')),
+        React.createElement('div',null,React.createElement('div',{className:'ob-sv'},conns.filter(c=>['Hot','Warm','Active'].includes(c.warmth)).length),React.createElement('div',{className:'ob-sl'},'Active')),
+        React.createElement('div',null,React.createElement('div',{className:'ob-sv'},hasMessages?msgCount:conns.filter(c=>c.hasEmail).length),React.createElement('div',{className:'ob-sl'},hasMessages?'Messaged':'With Email'))
+      )
+    ),
+    React.createElement('div',{className:'ob-r'},
+      step===1&&React.createElement('div',null,
+        React.createElement('div',{className:'slbl'},'Step 1 of 3'),
+        React.createElement('h2',{className:'stitle'},'Upload your LinkedIn data'),
+        React.createElement('div',{className:'guide'},React.createElement('strong',null,'How to export: '),'LinkedIn → Settings & Privacy → Data Privacy → Get a copy of your data → tick Connections AND Messages → Request archive.'),
+        conns?React.createElement('div',{className:'uok',style:{marginBottom:12}},React.createElement('span',{style:{fontSize:20}},'✅'),React.createElement('div',null,React.createElement('h3',null,`${conns.length.toLocaleString()} connections loaded`),React.createElement('p',null,`${conns.filter(c=>c.hasEmail).length} with email`)),React.createElement('span',{style:{marginLeft:'auto',cursor:'pointer',fontSize:12,color:'var(--p)',fontWeight:600},onClick:()=>document.getElementById('fi').click()},'Change'))
+          :React.createElement('div',{className:`uz ${drag?'drag':''}`,style:{marginBottom:12},onDragOver:e=>{e.preventDefault();setDrag(true)},onDragLeave:()=>setDrag(false),onDrop:e=>{e.preventDefault();setDrag(false);if(e.dataTransfer.files[0])readConnections(e.dataTransfer.files[0])},onClick:()=>document.getElementById('fi').click()},React.createElement('div',{className:'ui'},'📁'),React.createElement('h3',null,'1. Connections.csv'),React.createElement('p',null,'Required · your data never leaves your device')),
+        React.createElement('input',{type:'file',id:'fi',accept:'.csv',style:{display:'none'},onChange:e=>e.target.files[0]&&readConnections(e.target.files[0])}),
+        hasMessages?React.createElement('div',{className:'uok',style:{marginBottom:12,borderColor:'var(--acc)',background:'#FFFBEB'}},React.createElement('span',{style:{fontSize:20}},'💬'),React.createElement('div',null,React.createElement('h3',{style:{color:'#854D0E'}},'Messages.csv loaded'),React.createElement('p',{style:{color:'#854D0E'}},`${msgCount} connections matched to your message history`)))
+          :React.createElement('div',{className:`uz ${msgDrag?'drag':''}`,style:{marginBottom:12,opacity:conns?1:.45,cursor:conns?'pointer':'not-allowed'},onDragOver:e=>{e.preventDefault();if(conns)setMsgDrag(true)},onDragLeave:()=>setMsgDrag(false),onDrop:e=>{e.preventDefault();setMsgDrag(false);if(conns&&e.dataTransfer.files[0])readMessages(e.dataTransfer.files[0])},onClick:()=>conns&&document.getElementById('fi-msg').click()},React.createElement('div',{className:'ui',style:{background:'#FEF9C3'}},'💬'),React.createElement('h3',null,'2. Messages.csv'),React.createElement('p',null,conns?'Optional but recommended — enables real engagement scoring':'Upload Connections.csv first')),
+        React.createElement('input',{type:'file',id:'fi-msg',accept:'.csv',style:{display:'none'},onChange:e=>e.target.files[0]&&readMessages(e.target.files[0])}),
+        React.createElement('button',{className:'btn-p',style:{marginTop:8},disabled:!conns,onClick:()=>conns&&setStep(2)},conns?`Continue with ${conns.length.toLocaleString()} connections →`:'Upload Connections.csv to continue')
+      ),
+      step>=2&&React.createElement('div',null,
+        React.createElement('div',{className:'slbl'},'Step 2 of 3'),
+        React.createElement('h2',{className:'stitle'},'What are you trying to do?'),
+        React.createElement('div',{className:'mg'},MODES.map(m=>React.createElement('div',{key:m.id,className:`mc ${mode===m.id?'sel':''}`,onClick:()=>{setMode(m.id);setStep(3);setIntent({});}},React.createElement('div',{className:'mi'},m.icon),React.createElement('div',null,React.createElement('div',{className:'mt'},m.title),React.createElement('div',{className:'md'},m.desc)))))
+      ),
+      step>=3&&mode&&React.createElement('div',null,
+        React.createElement('div',{className:'slbl'},'Step 3 of 3'),
+        React.createElement('h2',{className:'stitle'},'Tell me a bit more'),
+        React.createElement('div',{className:'form'},
+          mode==='job'&&React.createElement(React.Fragment,null,I('Your background (one line — used in templates)','e.g. Ex-Amazon and Rivoli, now building a fractional CMO practice in the GCC',intent.aboutMe,v=>setIntent({...intent,aboutMe:v})),I('Target Role','e.g. Marketing Manager',intent.role,v=>setIntent({...intent,role:v})),S('Target Industry',intent.industry,v=>setIntent({...intent,industry:v}),INDS),I('Target Companies (comma separated)',"e.g. Sephora, Chalhoub, L'Oréal",intent.companies,v=>setIntent({...intent,companies:v})),I('Target City','e.g. Dubai, London',intent.city,v=>setIntent({...intent,city:v}))),
+          mode==='pivot'&&React.createElement(React.Fragment,null,I('Your background (one line — used in templates)','e.g. 10 years in luxury brand marketing, now transitioning into wellness',intent.aboutMe,v=>setIntent({...intent,aboutMe:v})),S('Industry Moving INTO',intent.industry,v=>setIntent({...intent,industry:v}),INDS),I('Industry Moving FROM','e.g. Finance, Tech',intent.fromIndustry,v=>setIntent({...intent,fromIndustry:v})),I('Target Role','e.g. Brand Manager',intent.role,v=>setIntent({...intent,role:v}))),
+          mode==='clients'&&React.createElement(React.Fragment,null,I('Your background (one line — used in templates)','e.g. Fractional CMO with a decade in beauty and luxury across the GCC',intent.aboutMe,v=>setIntent({...intent,aboutMe:v})),I('What do you offer?','e.g. Fractional CMO, Brand Strategy',intent.offering,v=>setIntent({...intent,offering:v})),I('Target Client Industries','e.g. Beauty, Wellness, Luxury',intent.industries,v=>setIntent({...intent,industries:v})),I('Target City / Market','e.g. Dubai, GCC',intent.city,v=>setIntent({...intent,city:v}))),
+          mode==='city'&&React.createElement(React.Fragment,null,I('Which city?','e.g. Dubai',intent.city,v=>setIntent({...intent,city:v})),S('How long have you been there?',intent.duration,v=>setIntent({...intent,duration:v}),['Under 6 months','6–12 months','1–2 years','2+ years'])),
+          mode==='audit'&&React.createElement(React.Fragment,null,S('Your Current Industry',intent.currentIndustry,v=>setIntent({...intent,currentIndustry:v}),INDS),I('Industries to break into','e.g. Health Tech, Media',intent.targetIndustries,v=>setIntent({...intent,targetIndustries:v})))
+        ),
+        React.createElement('button',{className:'btn-p',disabled:!conns||!mode,onClick:()=>conns&&mode&&onStart(conns,mode,intent,hasMessages)},'Analyse My Network →')
+      )
+    )
+  );
+}
+
+/* ─ TEMPLATES TAB ─ */
+function TemplateCard({label,when,msg,note}){
+  const [open,setOpen]=React.useState(false);
+  const [copied,setCopied]=React.useState(false);
+  function copy(){navigator.clipboard.writeText(msg);setCopied(true);setTimeout(()=>setCopied(false),2000);}
+  return React.createElement('div',{className:`tmpl-card ${open?'expanded':''}`,onClick:()=>setOpen(o=>!o)},
+    React.createElement('div',{className:'tmpl-label'},label),
+    React.createElement('div',{className:'tmpl-when'},when),
+    open&&React.createElement('div',null,
+      React.createElement('div',{className:'tmpl-msg'},msg),
+      note&&React.createElement('div',{className:'tmpl-note'},'💡 ',note),
+      React.createElement('button',{className:'tmpl-copy',onClick:e=>{e.stopPropagation();copy();}},copied?'✓ Copied':'Copy message')
+    )
+  );
+}
+
+function TemplatesTab({mode,intent}){
+  const n=intent.aboutMe||'[your one-line background]';
+  const role=intent.role||'[target role]';
+  const ind=intent.industry||intent.industries||'[target industry]';
+  const offer=intent.offering||'[your service]';
+  const city=intent.city||'[your city]';
+  const co=intent.companies||'[target company]';
+
+  const sections={
+    job:[
+      {
+        title:'🎯 Recruiters',sub:'Use when reaching out to recruiters in your target space',
+        cards:[
+          {label:'Cold recruiter — never messaged',when:'You connected but never spoke. They recruit in your target industry.',
+            msg:`Hi [Name],
+
+I noticed you recruit in ${ind} — I've been building my career in this space and am now actively exploring ${role} opportunities.
+
+Would love to be on your radar. Happy to share my background if helpful.`,
+            note:'Keep it short. Recruiters get hundreds of these — specificity wins.'},
+          {label:'Warm recruiter — you messaged before',when:'You've spoken before, even briefly.',
+            msg:`Hi [Name],
+
+Hope you're well — we connected a while back and I wanted to reach out again. I've since [one thing you've done, e.g. led a regional launch / completed a big project] and am now actively exploring ${role} roles in ${ind}.
+
+Would love to reconnect if you have anything relevant on your radar.`,
+            note:'Reference what's changed since you last spoke. That's the re-engagement hook.'},
+          {label:'Recruiter messaged you first',when:'They reached out — you haven't replied yet.',
+            msg:`Hi [Name],
+
+Apologies for the delayed reply — I've been heads down but your message caught my attention. I'm currently exploring ${role} opportunities in ${ind} and would love to learn more about what you're working on.
+
+Do you have 15 minutes this week?`,
+            note:'Always reference their outreach. It shows you actually read it.'},
+        ]
+      },
+      {
+        title:'🏢 Target Company Contacts',sub:'Use when someone at your dream company is already in your network',
+        cards:[
+          {label:'Someone you've never messaged',when:'They work at your target company. Cold connection.',
+            msg:`Hi [Name],
+
+I've been following ${co}'s work closely — the [something specific about the company, e.g. recent expansion / product launch] really stood out to me.
+
+I'm exploring a move into the team and would love 15 minutes to hear about your experience there. No ask beyond that — just a genuine conversation.`,
+            note:'Name something specific about the company. Generic "I admire your work" gets ignored.'},
+          {label:'Hiring manager — warm connection',when:'They're senior enough to hire. You've spoken before.',
+            msg:`Hi [Name],
+
+Great to stay in touch — I've been thinking about a move to ${co} and you immediately came to mind.
+
+I've spent [X years] in [relevant background] and think there could be a real fit. Would love to explore if there's an opening or even just get your read on the team.`,
+            note:'Ask for their read on the team, not just "are you hiring". It's a softer and smarter opener.'},
+        ]
+      },
+      {
+        title:'🤝 Warm Re-engagements',sub:'Reconnecting with people you've lost touch with',
+        cards:[
+          {label:'You sent the last message (no reply)',when:'You reached out before. They didn't respond. It's been a while.',
+            msg:`Hi [Name],
+
+I reached out a while back but wanted to try again — I know inboxes get chaotic.
+
+I'm currently exploring ${role} opportunities in ${ind} and thought of you. No pressure at all — even a 10-minute call would be incredibly helpful.`,
+            note:'Don't mention they didn't reply. Just re-open the door naturally.'},
+          {label:'They sent the last message (you didn't reply)',when:'They reached out. You forgot to follow up.',
+            msg:`Hi [Name],
+
+I owe you a reply — I saw your message and then completely dropped the ball. Apologies.
+
+I'm now actively exploring ${role} roles and would genuinely love to reconnect. Would you be open to a quick call?`,
+            note:'Own it. People respect honesty far more than pretending it didn't happen.'},
+          {label:'Cold connection — 2+ years, strong reason',when:'You haven't spoken but they're at the right company or in the right role.',
+            msg:`Hi [Name],
+
+We connected a while back and I don't think we've ever actually spoken — I'd love to change that.
+
+I'm [${n}] and currently exploring ${role} opportunities. Your background in ${ind} is exactly the space I'm moving into. Would love a 15-minute coffee chat if you're open to it.`,
+            note:'Lead with who you are. Don't assume they remember you.'},
+        ]
+      },
+    ],
+    pivot:[
+      {
+        title:'🌿 Industry Insiders',sub:'People already in the world you're moving into',
+        cards:[
+          {label:'Senior person — never messaged',when:'They're Director+ in your target industry. No prior contact.',
+            msg:`Hi [Name],
+
+I'm in the middle of a deliberate transition into ${ind} — I've been [${n}] and I'm now building towards [target role].
+
+Your path into this space is one I've been following and I'd love 20 minutes to hear how you got there. No hidden agenda — just someone who wants to do this properly.`,
+            note:'Say "deliberate transition" not "career pivot". It sounds more intentional.'},
+          {label:'Peer — you have something in common',when:'Similar level, same target industry. Easier conversation.',
+            msg:`Hi [Name],
+
+I think we have a bit in common — I'm transitioning into ${ind} from [your current background] and noticed you've made a similar move.
+
+I'd love to hear what the shift was actually like. Would you be up for a quick chat?`,
+            note:'Peer-to-peer conversations are the most honest. They'll tell you what hiring managers won't.'},
+          {label:'Someone you've spoken to before',when:'Prior contact. Now following up with your pivot news.',
+            msg:`Hi [Name],
+
+Hope you're well — we spoke a while back and I wanted to share a quick update. I'm now making a deliberate move into ${ind} after [brief background].
+
+I'd love to get your perspective if you have 20 minutes. You're one of the people whose read on this space I actually trust.`,
+            note:'Saying "I trust your read" is more compelling than a generic coffee chat ask.'},
+        ]
+      },
+    ],
+    clients:[
+      {
+        title:'💼 Decision Makers',sub:'Founders, C-Suite and Directors in your target industries',
+        cards:[
+          {label:'Founder / CEO — never messaged',when:'You're connected but haven't spoken. Strong target.',
+            msg:`Hi [Name],
+
+I've been following ${co||'your brand'} and genuinely think what you're building in ${ind} is interesting.
+
+I work with ${ind} brands on ${offer} — and I think there's something specific I could bring to the table for you. Would you be open to a 20-minute call?`,
+            note:'Lead with their company, not your services. Founders hear pitches all day — curiosity about them cuts through.'},
+          {label:'Warm lead — you've spoken before',when:'Some prior contact. Strong enough relationship to pitch.',
+            msg:`Hi [Name],
+
+Great to stay in touch — I've been meaning to reach out.
+
+I've been doing a lot of work with ${ind} brands on ${offer} recently and keep thinking about ${co||'your team'}. Think there could be something worth a conversation. Would you be open to a quick call this week?`,
+            note:'"Keep thinking about your team" implies you've already been thinking about a fit. Warm and specific.'},
+          {label:'Re-engage a cold lead',when:'You connected a long time ago. No prior convo. Worth trying.',
+            msg:`Hi [Name],
+
+We connected a while back and I don't think we ever spoke properly — wanted to change that.
+
+I'm [${n}] and I work with brands in ${ind} on ${offer}. I think what you're building at ${co||'your company'} is genuinely interesting — would love to explore if there's a fit.`,
+            note:'Keep it short. A cold message that's too long gets deleted. The goal is one reply, not a full pitch.'},
+        ]
+      },
+      {
+        title:'⏰ Re-engagement',sub:'Warm leads going cold — touch back before they forget you',
+        cards:[
+          {label:'Value-add touchpoint',when:'You haven't spoken in 3–6 months. Re-open without pitching.',
+            msg:`Hi [Name],
+
+Thought of you when I saw [relevant article / industry news / something specific] — figured it might be useful given what you're building at ${co||'your company'}.
+
+Hope things are going well — would love to catch up soon.`,
+            note:'Share something genuinely relevant. Don't fake it. This is a relationship touchpoint, not a pitch.'},
+          {label:'Follow-up after a previous conversation',when:'You spoke before. Never converted. Trying again.',
+            msg:`Hi [Name],
+
+Following up from our conversation a while back — I wanted to revisit whether there might be a fit.
+
+I've been working with a few ${ind} brands on ${offer} and the results have been strong. Would you be open to a 15-minute call to explore?`,
+            note:'Reference "our conversation" to remind them this isn't cold. Then lead with results, not process.'},
+        ]
+      },
+    ],
+    city:[
+      {
+        title:'🏙 Local Connections',sub:'People in your city you've never actually met',
+        cards:[
+          {label:'Same industry — easy starter',when:'You're connected. Same field. Same city. Never met.',
+            msg:`Hi [Name],
+
+I've been based in ${city} for a while now and realised we've never actually met — which seems like a waste given we're in similar worlds.
+
+Would you be up for a coffee sometime?`,
+            note:'Short is right here. Coffee invites don't need a paragraph of justification.'},
+          {label:'Different industry — stronger reason needed',when:'You're connected but in different fields. Need a specific hook.',
+            msg:`Hi [Name],
+
+We connected a while back but I don't think we've ever spoken properly. I'm [${n}] — based in ${city}.
+
+I'd love to hear more about what you're working on at [their company]. Would you be up for a coffee?`,
+            note:'Lead with curiosity about them. Cross-industry coffees work best when you're genuinely interested.'},
+          {label:'Someone who reached out to you',when:'They messaged you first. You're slow to reply.',
+            msg:`Hi [Name],
+
+Apologies for the slow reply — your message came at a busy time. I'd love to connect properly.
+
+I'm in ${city} — would you be up for a coffee this week or next?`,
+            note:'Own the delay. Then move fast to a concrete ask.'},
+        ]
+      },
+    ],
+    audit:[
+      {
+        title:'🌐 Strategic Additions',sub:'Templates for intentionally expanding your network',
+        cards:[
+          {label:'Reaching out to someone in a gap industry',when:'You have no connections in this sector. Starting from scratch.',
+            msg:`Hi [Name],
+
+I don't think we've connected before but I came across your profile and wanted to reach out.
+
+I'm [${n}] — I'm deliberately building my presence in ${ind} and your background is exactly the kind of perspective I'd love to learn from. Would you be open to a quick call?`,
+            note:'"Deliberately building my presence" signals intent and seriousness. It's not random.'},
+          {label:'Upgrading a peer relationship to a mentor one',when:'You know them as a peer. They've since become more senior.',
+            msg:`Hi [Name],
+
+We connected a while back when we were both [similar level / same context] — a lot has changed since then.
+
+I've been following your path and would love to get your perspective on [specific topic]. Would you be open to 20 minutes?`,
+            note:'Reference the shared history. Show you've been paying attention to their growth.'},
+        ]
+      },
+    ],
+  };
+
+  const modeSections=sections[mode]||sections.audit;
+
+  return React.createElement('div',{className:'fade'},
+    React.createElement('div',{className:'sh'},
+      React.createElement('div',null,
+        React.createElement('div',{className:'st'},'Message Templates'),
+        React.createElement('div',{style:{fontSize:12,color:'var(--t2)',marginTop:4}},'Click any template to expand · customise the [bracketed] parts before sending')
+      )
+    ),
+    intent.aboutMe&&React.createElement('div',{style:{background:'var(--primary-light)',borderRadius:'var(--rsm)',padding:'12px 16px',marginBottom:18,fontSize:12,color:'var(--p)',background:'var(--pl)'}},
+      '✓ Using your background: ',React.createElement('strong',null,intent.aboutMe)
+    ),
+    React.createElement('div',{className:'tmpl-grid'},
+      modeSections.map((section,si)=>
+        React.createElement('div',{key:si,className:'tmpl-section'},
+          React.createElement('div',{className:'tmpl-section-title'},section.title),
+          React.createElement('div',{className:'tmpl-section-sub'},section.sub),
+          React.createElement('div',{className:'tmpl-cards'},
+            section.cards.map((card,ci)=>
+              React.createElement(TemplateCard,{key:ci,...card})
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+/* ─ DASHBOARD ─ */
+function Dashboard({conns,mode,intent,hasMessages,onReset}){
+  const [tab,setTab]=useState('hitlist');
+  const [show,setShow]=useState(20);
+  const [tf,setTf]=useState({q:'',sen:'',fn:'',ind:'',w:'',msg:''});
+  const [sf,setSf]=useState('warmth');
+  const [sd,setSd]=useState(1);
+  const [coQ,setCoQ]=useState('');
+  const [emailQ,setEmailQ]=useState('');
+  const [emailSen,setEmailSen]=useState('');
+
+  const mi=MODES.find(m=>m.id===mode);
+  const h=useMemo(()=>calcHealth(conns,hasMessages),[conns,hasMessages]);
+  const ins=useMemo(()=>genInsights(conns,mode,intent,hasMessages),[conns,mode,intent,hasMessages]);
+  const ranked=useMemo(()=>[...conns].map(c=>({...c,score:scoreC(c,mode,intent)})).sort((a,b)=>b.score-a.score).filter(c=>c.score>5),[conns,mode,intent]);
+
+  const filtered=useMemo(()=>{
+    let l=[...conns];
+    if(tf.q){const q=tf.q.toLowerCase();l=l.filter(c=>c.name.toLowerCase().includes(q)||c.company.toLowerCase().includes(q)||c.position.toLowerCase().includes(q)||c.email.toLowerCase().includes(q));}
+    if(tf.sen)l=l.filter(c=>c.seniority===tf.sen);
+    if(tf.fn)l=l.filter(c=>c.fn===tf.fn);
+    if(tf.ind)l=l.filter(c=>c.industry===tf.ind);
+    if(tf.w)l=l.filter(c=>c.warmth===tf.w);
+    if(tf.msg==='messaged')l=l.filter(c=>!!c.lastMessageDate);
+    if(tf.msg==='recent')l=l.filter(c=>c.lastMessageDate&&(Date.now()-c.lastMessageDate)<1000*60*60*24*30*3);
+    if(tf.msg==='never')l=l.filter(c=>!c.lastMessageDate);
+    const wo={Active:0,Hot:1,Warm:2,Cooling:3,Cold:4};
+    l.sort((a,b)=>{if(sf==='warmth')return sd*(wo[a.warmth]-wo[b.warmth]);return sd*((a[sf]||'').localeCompare(b[sf]||''));});
+    return l;
+  },[conns,tf,sf,sd]);
+
+  const recs=useMemo(()=>conns.filter(c=>c.seniority==='Recruiter').sort((a,b)=>({Active:0,Hot:1,Warm:2,Cooling:3,Cold:4}[a.warmth]-{Active:0,Hot:1,Warm:2,Cooling:3,Cold:4}[b.warmth])),[conns]);
+  const wLeads=useMemo(()=>ranked.filter(c=>['Hot','Warm','Active'].includes(c.warmth)),[ranked]);
+  const insiders=useMemo(()=>ranked.filter(c=>(intent.industry||'')&&c.industry.toLowerCase().includes((intent.industry||'').toLowerCase())),[ranked,intent]);
+  const emailConns=useMemo(()=>conns.filter(c=>c.hasEmail).sort((a,b)=>({Active:0,Hot:1,Warm:2,Cooling:3,Cold:4}[a.warmth]-{Active:0,Hot:1,Warm:2,Cooling:3,Cold:4}[b.warmth])),[conns]);
+  const filteredEmails=useMemo(()=>emailConns.filter(c=>{const q=emailQ.toLowerCase();return(!q||(c.name.toLowerCase().includes(q)||c.company.toLowerCase().includes(q)||c.email.toLowerCase().includes(q)))&&(!emailSen||c.seniority===emailSen);}),[emailConns,emailQ,emailSen]);
+  const coCounts=useMemo(()=>{const m={};conns.forEach(c=>{if(!c.company)return;if(!m[c.company])m[c.company]={name:c.company,count:0,hot:0,warm:0};m[c.company].count++;if(['Hot','Active'].includes(c.warmth))m[c.company].hot++;if(c.warmth==='Warm')m[c.company].warm++;});return Object.values(m).sort((a,b)=>b.count-a.count);},[conns]);
+  const stats=useMemo(()=>({total:conns.length,hw:conns.filter(c=>['Hot','Warm','Active'].includes(c.warmth)).length,em:conns.filter(c=>c.hasEmail).length,sr:conns.filter(c=>['Founder','C-Suite','VP','Director'].includes(c.seniority)).length,messaged:conns.filter(c=>!!c.lastMessageDate).length}),[conns]);
+
+  function exportCSV(data,fname){
+    const hdr=['Name','Email','Company','Position','Seniority','Function','Industry','Connection Recency','Last Messaged','Connected On','LinkedIn'];
+    const rows=data.map(c=>[c.name,c.email,c.company,c.position,c.seniority,c.fn,c.industry,c.connectionWarmth,c.lastMessageDate?new Date(c.lastMessageDate).toLocaleDateString():'Never',c.connectedOn,c.url]);
+    const csv=[hdr,...rows].map(r=>r.map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=fname;a.click();
+  }
+
+  const SENIORITIES=['Founder','C-Suite','VP','Director','Senior','Manager','Recruiter','IC / Peer'];
+  const FUNCTIONS=['Marketing','Sales','Finance','Tech & Engineering','People & HR','Creative & Design','Operations','Consulting','Recruitment & Talent','Founder','Investor / VC','Other'];
+  const baseTabs=[{id:'hitlist',label:'⚡ Hit List'},{id:'templates',label:'✍️ Templates'},{id:'email',label:'✉ Emails'},{id:'network',label:'👥 Network'},{id:'companies',label:'🏢 Companies'},{id:'charts',label:'📊 Charts'}];
+  const extraTabs=mode==='job'?[{id:'recs',label:'🎯 Recruiters'}]:mode==='clients'?[{id:'warm',label:'🔥 Warm Leads'}]:mode==='pivot'?[{id:'ins',label:'🌿 Insiders'}]:[];
+  const tabs=[...baseTabs,...extraTabs];
+
+  function renderContent(){
+    if(tab==='hitlist')return React.createElement('div',{className:'fade'},
+      !hasMessages&&React.createElement('div',{className:'warmth-note'},'💡 Hit list ranked by connection recency. Upload Messages.csv for real engagement scoring — the list will change significantly.'),
+      React.createElement('div',{className:'sh'},React.createElement('div',{className:'st'},'Your Hit List'),React.createElement('div',{style:{display:'flex',gap:8,alignItems:'center'}},React.createElement('span',{className:'sc2'},`${ranked.length} ranked`),React.createElement('button',{className:'bex',onClick:()=>exportCSV(ranked,'hit-list.csv')},'↓ Export'))),
+      React.createElement('div',{className:'hl-list'},ranked.slice(0,show).map((c,i)=>React.createElement(HitCard,{key:c.id,c,rank:i+1,mode,intent}))),
+      show<ranked.length&&React.createElement('div',{className:'lm'},React.createElement('button',{className:'blm',onClick:()=>setShow(s=>s+20)},`Load more (${ranked.length-show} remaining)`))
+    );
+
+    if(tab==='email')return React.createElement('div',{className:'fade'},
+      React.createElement('div',{className:'sh'},React.createElement('div',null,React.createElement('div',{className:'st'},'Email Reachable'),React.createElement('div',{style:{fontSize:12,color:'var(--t2)',marginTop:4}},'Connections who shared their email · click address to open mail')),React.createElement('button',{className:'bex',onClick:()=>exportCSV(filteredEmails,'emails.csv')},'↓ Export')),
+      React.createElement('div',{className:'fb'},React.createElement('input',{className:'fs',placeholder:'🔍 Search name, company, email...',value:emailQ,onChange:e=>setEmailQ(e.target.value)}),React.createElement('select',{className:'fsel',value:emailSen,onChange:e=>setEmailSen(e.target.value)},React.createElement('option',{value:''},'All Levels'),SENIORITIES.map(o=>React.createElement('option',{key:o,value:o},o)))),
+      emailConns.length===0
+        ?React.createElement('div',{style:{textAlign:'center',padding:60,color:'var(--t2)'}},'No connections have shared their email. LinkedIn only includes emails when connections explicitly allow it.')
+        :React.createElement('div',{className:'tw'},React.createElement('div',{className:'th2'},React.createElement('h3',null,`${filteredEmails.length} connections with email`)),React.createElement('div',{className:'ts'},React.createElement('table',null,React.createElement('thead',null,React.createElement('tr',null,React.createElement('th',null,'Name'),React.createElement('th',null,'Email'),React.createElement('th',null,'Company'),React.createElement('th',null,'Role'),React.createElement('th',null,'Level'),React.createElement('th',null,'Last Contact'),React.createElement('th',null,''))),React.createElement('tbody',null,filteredEmails.map(c=>React.createElement('tr',{key:c.id},React.createElement('td',null,React.createElement('div',{className:'tn'},c.name)),React.createElement('td',null,React.createElement('a',{href:`mailto:${c.email}`,style:{color:'var(--p)',fontSize:12}},c.email)),React.createElement('td',null,React.createElement('div',{className:'tsb'},c.company)),React.createElement('td',null,React.createElement('div',{className:'tsb'},c.position)),React.createElement('td',null,React.createElement('span',{className:'b bs'},c.seniority)),React.createElement('td',null,c.lastMessageDate?React.createElement('span',{className:'b',style:{background:'#5C4EE5',color:'#fff',fontSize:10}},'💬 ',msgAgo(c.lastMessageDate)):React.createElement(WBadge,{w:c.connectionWarmth})),React.createElement('td',null,c.url?React.createElement('a',{href:c.url,target:'_blank',rel:'noopener',style:{color:'var(--p)',textDecoration:'none'}},'↗'):''))))))
+        )
+    );
+
+    if(tab==='templates')return React.createElement(TemplatesTab,{mode,intent});
+
+    if(tab==='network')return React.createElement('div',{className:'fade'},
+      React.createElement('div',{className:'sh'},React.createElement('div',{className:'st'},'Full Network'),React.createElement('button',{className:'bex',onClick:()=>exportCSV(filtered,'network.csv')},'↓ Export')),
+      React.createElement('div',{className:'fb'},
+        React.createElement('input',{className:'fs',placeholder:'🔍 Search name, company, role, email...',value:tf.q,onChange:e=>setTf({...tf,q:e.target.value})}),
+        React.createElement('select',{className:'fsel',value:tf.sen,onChange:e=>setTf({...tf,sen:e.target.value})},React.createElement('option',{value:''},'All Levels'),SENIORITIES.map(o=>React.createElement('option',{key:o,value:o},o))),
+        React.createElement('select',{className:'fsel',value:tf.fn,onChange:e=>setTf({...tf,fn:e.target.value})},React.createElement('option',{value:''},'All Functions'),FUNCTIONS.map(o=>React.createElement('option',{key:o,value:o},o))),
+        React.createElement('select',{className:'fsel',value:tf.ind,onChange:e=>setTf({...tf,ind:e.target.value})},React.createElement('option',{value:''},'All Industries'),INDS.map(o=>React.createElement('option',{key:o,value:o},o))),
+        React.createElement('select',{className:'fsel',value:tf.w,onChange:e=>setTf({...tf,w:e.target.value})},React.createElement('option',{value:''},'All Recency'),['Active','Hot','Warm','Cooling','Cold'].map(o=>React.createElement('option',{key:o,value:o},o))),
+        React.createElement('select',{className:'fsel',value:tf.msg,onChange:e=>setTf({...tf,msg:e.target.value})},React.createElement('option',{value:''},'All Message Activity'),React.createElement('option',{value:'messaged'},'Ever Messaged'),React.createElement('option',{value:'recent'},'Messaged < 3 months'),React.createElement('option',{value:'never'},'Never Messaged'))
+      ),
+      React.createElement('div',{className:'tw'},
+        React.createElement('div',{className:'th2'},React.createElement('h3',null,`${filtered.length.toLocaleString()} connections`)),
+        React.createElement('div',{className:'ts'},React.createElement('table',null,
+          React.createElement('thead',null,React.createElement('tr',null,
+            [['name','Name'],['company','Company'],['position','Role'],['seniority','Level'],['connectionWarmth','Connected'],['warmth','Last Contact'],['industry','Industry']].map(([f,l])=>React.createElement('th',{key:f,onClick:()=>{if(sf===f)setSd(d=>-d);else{setSf(f);setSd(1);}}},l,' ',sf===f?(sd===1?'↑':'↓'):'')),
+            React.createElement('th',null,'Email'),React.createElement('th',null,'')
+          )),
+          React.createElement('tbody',null,filtered.slice(0,200).map(c=>React.createElement('tr',{key:c.id},
+            React.createElement('td',null,React.createElement('div',{className:'tn'},c.name)),
+            React.createElement('td',null,React.createElement('div',{className:'tsb'},c.company)),
+            React.createElement('td',null,React.createElement('div',{className:'tsb'},c.position)),
+            React.createElement('td',null,React.createElement('span',{className:'b bs'},c.seniority)),
+            React.createElement('td',null,React.createElement(WBadge,{w:c.connectionWarmth})),
+            React.createElement('td',null,c.lastMessageDate?React.createElement('span',{className:'b',style:{background:'#5C4EE5',color:'#fff',fontSize:10}},'💬 ',msgAgo(c.lastMessageDate)):React.createElement('span',{className:'b bf',style:{fontSize:10}},'— never')),
+            React.createElement('td',null,React.createElement('span',{className:'b bi',style:{fontSize:9}},c.industry)),
+            React.createElement('td',null,c.hasEmail?React.createElement('span',{className:'b be',title:c.email},'✉ Email'):'—'),
+            React.createElement('td',null,c.url?React.createElement('a',{href:c.url,target:'_blank',rel:'noopener',style:{color:'var(--p)',textDecoration:'none'}},'↗'):'')
+          )))
+        )),
+        filtered.length>200&&React.createElement('div',{style:{padding:10,textAlign:'center',fontSize:11,color:'var(--t2)'}},`Showing 200 of ${filtered.length} — use filters to narrow`)
+      )
+    );
+
+    if(tab==='companies')return React.createElement('div',{className:'fade'},
+      React.createElement('div',{className:'sh'},React.createElement('div',{className:'st'},'Companies in Your Network'),React.createElement('span',{className:'sc2'},`${coCounts.length} companies`)),
+      React.createElement('input',{className:'fs',placeholder:'🔍 Search e.g. "Sephora", "Chalhoub"',value:coQ,onChange:e=>setCoQ(e.target.value),style:{marginBottom:16,width:'100%'}}),
+      React.createElement('div',{className:'cog'},coCounts.filter(c=>!coQ||c.name.toLowerCase().includes(coQ.toLowerCase())).slice(0,80).map(c=>React.createElement('div',{key:c.name,className:'cocard'},React.createElement('div',{className:'con',title:c.name},c.name),React.createElement('div',{className:'coc'},c.count),React.createElement('div',{className:'com'},`${c.hot} hot · ${c.warm} warm`))))
+    );
+
+    if(tab==='charts')return React.createElement('div',{className:'fade'},
+      React.createElement('div',{className:'st',style:{marginBottom:18}},'Network Breakdown'),
+      React.createElement('div',{className:'cg'},
+        React.createElement('div',{className:'cc'},React.createElement('div',{className:'ct'},'By Seniority'),React.createElement(BarViz,{data:countBy(conns,'seniority'),color:'var(--p)'})),
+        React.createElement('div',{className:'cc'},React.createElement('div',{className:'ct'},'By Connection Recency'),React.createElement(BarViz,{data:countBy(conns,'connectionWarmth'),color:'var(--g)'})),
+        React.createElement('div',{className:'cc'},React.createElement('div',{className:'ct'},'By Industry'),React.createElement(BarViz,{data:countBy(conns,'industry'),color:'var(--acc)'})),
+        React.createElement('div',{className:'cc'},React.createElement('div',{className:'ct'},'By Function'),React.createElement(BarViz,{data:countBy(conns,'fn'),color:'var(--o)'}))
+      )
+    );
+
+    if(tab==='recs')return React.createElement('div',{className:'fade'},React.createElement('div',{className:'sh'},React.createElement('div',{className:'st'},`${recs.length} Recruiters`),React.createElement('button',{className:'bex',onClick:()=>exportCSV(recs,'recruiters.csv')},'↓ Export')),React.createElement('div',{className:'hl-list'},recs.slice(0,30).map((c,i)=>React.createElement(HitCard,{key:c.id,c,rank:i+1,mode,intent}))));
+    if(tab==='warm')return React.createElement('div',{className:'fade'},React.createElement('div',{className:'sh'},React.createElement('div',{className:'st'},`${wLeads.length} Warm Leads`),React.createElement('button',{className:'bex',onClick:()=>exportCSV(wLeads,'warm-leads.csv')},'↓ Export')),React.createElement('div',{className:'hl-list'},wLeads.slice(0,30).map((c,i)=>React.createElement(HitCard,{key:c.id,c,rank:i+1,mode,intent}))));
+    if(tab==='ins')return React.createElement('div',{className:'fade'},React.createElement('div',{className:'sh'},React.createElement('div',{className:'st'},`Industry Insiders${intent.industry?' — '+intent.industry:''}`)),React.createElement('div',{className:'hl-list'},insiders.slice(0,30).map((c,i)=>React.createElement(HitCard,{key:c.id,c,rank:i+1,mode,intent}))));
+  }
+
+  return React.createElement('div',{className:'dash'},
+    React.createElement('div',{className:'sb'},
+      React.createElement('div',{className:'sb-logo'},'⚡'),
+      tabs.map(t=>React.createElement('div',{key:t.id,className:`si ${tab===t.id?'act':''}`,onClick:()=>setTab(t.id),title:t.label.replace(/^\S+ /,'')},t.label.split(' ')[0])),
+      React.createElement('div',{className:'sb-bot'},React.createElement('div',{className:'mbadge',onClick:onReset,title:'Reset'},mi?.icon,' Reset'))
+    ),
+    React.createElement('div',{className:'main'},
+      React.createElement('div',{className:'topbar'},
+        React.createElement('div',null,React.createElement('h1',null,'Network Intelligence'),React.createElement('p',null,`${stats.total.toLocaleString()} connections analysed`)),
+        React.createElement('div',{className:'tbr'},
+          React.createElement('div',{className:'mpill'},mi?.icon,' ',mi?.title),
+          hasMessages&&React.createElement('div',{className:'msg-pill'},`💬 ${stats.messaged} contacts matched`),
+          React.createElement('button',{className:'btn-sm',onClick:onReset},'Change Mode')
+        )
+      ),
+      React.createElement('div',{className:'stats'},
+        React.createElement('div',{className:'sc hl'},React.createElement('div',{className:'sc-l'},'Total'),React.createElement('div',{className:'sc-v'},stats.total.toLocaleString()),React.createElement('div',{className:'sc-s'},'connections')),
+        React.createElement('div',{className:'sc'},React.createElement('div',{className:'sc-l'},'🔥 Active'),React.createElement('div',{className:'sc-v'},stats.hw.toLocaleString()),React.createElement('div',{className:'sc-s'},`${Math.round(stats.hw/stats.total*100)}% of network`)),
+        React.createElement('div',{className:'sc'},React.createElement('div',{className:'sc-l'},hasMessages?'💬 Ever Messaged':'✉ With Email'),React.createElement('div',{className:'sc-v'},hasMessages?stats.messaged:stats.em),React.createElement('div',{className:'sc-s'},hasMessages?'real engagement':'direct reachable')),
+        React.createElement('div',{className:'sc'},React.createElement('div',{className:'sc-l'},'👑 Decision Makers'),React.createElement('div',{className:'sc-v'},stats.sr.toLocaleString()),React.createElement('div',{className:'sc-s'},`${Math.round(stats.sr/stats.total*100)}% of network`)),
+        React.createElement('div',{className:'sc'},React.createElement('div',{className:'sc-l'},'🏆 Health Score'),React.createElement('div',{className:'sc-v',style:{color:h.score>=65?'var(--g)':h.score>=50?'var(--o)':'var(--r)'}},h.score),React.createElement('div',{className:'sc-s'},h.grade))
+      ),
+      React.createElement('div',{className:'tabs'},tabs.map(t=>React.createElement('button',{key:t.id,className:`tab ${tab===t.id?'act':''}`,onClick:()=>setTab(t.id)},t.label))),
+      React.createElement('div',{className:'two-col'},
+        React.createElement('div',null,renderContent()),
+        React.createElement('div',null,
+          React.createElement('div',{className:'health'},
+            React.createElement('div',{className:'hl-l'},'Network Health Score'),
+            React.createElement('div',{className:'hl-s'},h.score),
+            React.createElement('div',{className:'hl-sub'},'out of 100'),
+            React.createElement('div',{className:'hl-grade'},h.grade),
+            React.createElement('div',{className:'hbars'},h.comps.map(c=>React.createElement('div',{key:c.l,className:'hbr'},React.createElement('div',{className:'hbl'},React.createElement('span',null,c.l),React.createElement('span',null,`${c.v}/${c.m}`)),React.createElement('div',{className:'hbt'},React.createElement('div',{className:'hbf',style:{width:`${(c.v/c.m)*100}%`}})))))
+          ),React.createElement('div',{className:'health-note'},h.tip),
+          React.createElement('div',{className:'inp'},ins.map((x,i)=>React.createElement('div',{key:i,className:`ic ${x.t}`},React.createElement('div',{className:'ic-ic'},x.i),React.createElement('div',{className:'ic-h'},x.h),React.createElement('div',{className:'ic-b'},x.b),x.a&&React.createElement('button',{className:'ic-a',onClick:()=>setTab(x.a.includes('insider')?'ins':x.a.includes('warm')?'warm':'hitlist')},'→ ',x.a))))
+        )
+      )
+    )
+  );
+}
+
+function App(){
+  const [s,setS]=useState('ob');const [conns,setConns]=useState([]);const [mode,setMode]=useState(null);const [intent,setIntent]=useState({});const [hasMessages,setHasMessages]=useState(false);
+  if(s==='ob')return React.createElement(Onboarding,{onStart:(c,m,i,hm)=>{setConns(c);setMode(m);setIntent(i);setHasMessages(hm);setS('dash');}});
+  return React.createElement(Dashboard,{conns,mode,intent,hasMessages,onReset:()=>setS('ob')});
+}
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
